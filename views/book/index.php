@@ -33,7 +33,14 @@ $this->params['breadcrumbs'][] = $this->title;
             'name',
             'date',
             'isbn',
-            'description:ntext',
+            [
+                'attribute' => 'author_check',
+                'label'  => 'Авторы',
+                'value' => function($model){
+                    return implode(', ' , $model->getAuthorsList());
+                },
+                'filter' => \app\models\Author::getAuthorsList()
+            ],
             [
                 'attribute' => 'photo',
                 'format' => 'raw',

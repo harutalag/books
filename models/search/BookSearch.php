@@ -11,6 +11,7 @@ use app\models\Book;
  */
 class BookSearch extends Book
 {
+    public $author_check;
     /**
      * {@inheritdoc}
      */
@@ -18,7 +19,7 @@ class BookSearch extends Book
     {
         return [
             [['id'], 'integer'],
-            [['name', 'date', 'isbn', 'description'], 'safe'],
+            [['name', 'date', 'isbn', 'description', 'author_check'], 'safe'],
         ];
     }
 
@@ -40,7 +41,7 @@ class BookSearch extends Book
      */
     public function search($params)
     {
-        $query = Book::find();
+        $query = Book::find()->alias('t');
 
         // add conditions that should always apply here
 
@@ -50,6 +51,14 @@ class BookSearch extends Book
 
         $this->load($params);
 
+        if ($this->author_check){
+            $query->joinWith('bookHasAuthors bHA');
+            // grid filtering conditions
+            $query->andFilterWhere([
+                'bHA.author_id' => $this->author_check,
+            ]);
+        }
+
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails
             // $query->where('0=1');
@@ -58,13 +67,13 @@ class BookSearch extends Book
 
         // grid filtering conditions
         $query->andFilterWhere([
-            'id' => $this->id,
-            'date' => $this->date,
+            't.id' => $this->id,
+            't.date' => $this->date,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'isbn', $this->isbn])
-            ->andFilterWhere(['like', 'description', $this->description]);
+        $query->andFilterWhere(['like', 't.name', $this->name])
+            ->andFilterWhere(['like', 't.isbn', $this->isbn])
+            ->andFilterWhere(['like', 't.description', $this->description]);
 
         return $dataProvider;
     }
